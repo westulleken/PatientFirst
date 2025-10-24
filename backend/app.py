@@ -14,6 +14,12 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+    # ------------------------
+    # Import and register blueprints
+    # ------------------------
+    from routes.patients import patients_bp
+    app.register_blueprint(patients_bp)
+
     @app.route('/')
     def index():
         return {"message": "PatientFirst backend is running"}
