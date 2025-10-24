@@ -1,26 +1,17 @@
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# ------------------------
-# Patient Model
-# ------------------------
-class Patient(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    date_of_birth = db.Column(db.String(20))
-    gender = db.Column(db.String(20))
 
-    def __repr__(self):
-        return f"<Patient {self.first_name} {self.last_name}>"
-
-# ------------------------
-# User Model
-# ------------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(50), default="user")
 
-    def __repr__(self):
-        return f"<User {self.username}>"
+    def set_password(self, password):
+        """Hashes and sets the user's password."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Verifies a password against the stored hash."""
+        return check_password_hash(self.password_hash, password)
