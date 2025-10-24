@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import os
 
-# Create global SQLAlchemy instance
+# Initialize the database object here but don't bind it yet
 db = SQLAlchemy()
 
 
@@ -19,27 +19,20 @@ def create_app():
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Initialize database
+    # Initialize SQLAlchemy with this app
     db.init_app(app)
 
-    # ----------------------------
-    # Import and register blueprints
-    # ----------------------------
+    # Import models so SQLAlchemy is aware of them
+    from models import User
+
+    # Register blueprints
     from routes.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")
 
-    # Optional: add future blueprints here (e.g. /patients, /appointments)
-
-    # ----------------------------
-    # Create database tables
-    # ----------------------------
+    # Create tables
     with app.app_context():
-        from models import User  # ensure models are registered before create_all
         db.create_all()
 
-    # ----------------------------
-    # Root route
-    # ----------------------------
     @app.route("/")
     def index():
         return {"message": "PatientFirst backend is running"}
