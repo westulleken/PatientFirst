@@ -20,5 +20,10 @@ def home():
 def admin_dropdowns():
     return render_template("admin_dropdowns.html")
 
+# Patient registration UI
+@app.route("/register")
+def register():
+    return render_template("register_patient.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
