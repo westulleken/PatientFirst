@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register Patient</title>
+</head>
+<body>
+    <h2>Add Patient</h2>
+
+    <form id="patientForm">
+        <label>First name:</label>
+        <input type="text" id="first_name"><br>
+
+        <label>Surname:</label>
+        <input type="text" id="surname"><br>
+
+        <label>ID type:</label>
+        <input type="number" id="id_type_id"><br>
+
+        <label>ID number:</label>
+        <input type="text" id="id_number"><br>
+
+        <label>Date of birth:</label>
+        <input type="date" id="date_of_birth"><br>
+
+        <button type="button" onclick="submitForm()">Save</button>
+    </form>
+
+    <script>
+        async function submitForm() {
+            const payload = {
+                first_name: document.getElementById("first_name").value,
+                surname: document.getElementById("surname").value,
+                id_type_id: document.getElementById("id_type_id").value,
+                id_number: document.getElementById("id_number").value,
+                date_of_birth: document.getElementById("date_of_birth").value
+            };
+
+            const response = await fetch("http://localhost:5000/api/patients", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            alert(JSON.stringify(result));
+        }
+    </script>
+
+</body>
+</html>
