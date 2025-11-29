@@ -2,49 +2,223 @@
 <html>
 <head>
     <title>Register Patient</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select { width: 300px; padding: 6px; margin-top: 5px; }
+        .section-title { font-size: 22px; margin-top: 30px; font-weight: bold; }
+        .subsection { margin-left: 20px; margin-top: 15px; }
+        .contact-row, .address-row, .nok-row { margin-top: 10px; }
+    </style>
 </head>
 <body>
-    <h2>Add Patient</h2>
 
-    <form id="patientForm">
-        <label>First name:</label>
-        <input type="text" id="first_name"><br>
+<h1>Register Patient</h1>
 
-        <label>Surname:</label>
-        <input type="text" id="surname"><br>
+<form id="patientForm">
 
-        <label>ID type:</label>
-        <input type="number" id="id_type_id"><br>
+    <!-- IDENTIFICATION -->
+    <div class="section-title">Identity & Demographics</div>
 
-        <label>ID number:</label>
-        <input type="text" id="id_number"><br>
+    <label>First Name</label>
+    <input type="text" id="first_name">
 
-        <label>Date of birth:</label>
-        <input type="date" id="date_of_birth"><br>
+    <label>Surname</label>
+    <input type="text" id="surname">
 
-        <button type="button" onclick="submitForm()">Save</button>
-    </form>
+    <label>Salutation</label>
+    <select id="salutation_id"></select>
 
-    <script>
-        async function submitForm() {
-            const payload = {
-                first_name: document.getElementById("first_name").value,
-                surname: document.getElementById("surname").value,
-                id_type_id: document.getElementById("id_type_id").value,
-                id_number: document.getElementById("id_number").value,
-                date_of_birth: document.getElementById("date_of_birth").value
-            };
+    <label>ID Type</label>
+    <select id="id_type_id"></select>
 
-            const response = await fetch("http://localhost:5000/api/patients", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(payload)
-            });
+    <label>ID / Passport Number</label>
+    <input type="text" id="id_number">
 
-            const result = await response.json();
-            alert(JSON.stringify(result));
-        }
-    </script>
+    <label>Date of Birth</label>
+    <input type="date" id="date_of_birth">
+
+    <label>Sex</label>
+    <select id="sex_id"></select>
+
+    <label>Gender Identity</label>
+    <select id="gender_identity_id"></select>
+
+    <label>Nationality</label>
+    <select id="nationality_id"></select>
+
+    <label>Home Language</label>
+    <select id="language_id"></select>
+
+    <label>Occupation</label>
+    <input type="text" id="occupation">
+
+
+    <!-- CONTACT DETAILS -->
+    <div class="section-title">Contact Details</div>
+
+    <div id="contacts">
+        <div class="contact-row">
+            <select class="contact_type"></select>
+            <input type="text" class="contact_value" placeholder="Phone or Email">
+        </div>
+    </div>
+    <button type="button" onclick="addContact()">+ Add Contact</button>
+
+
+    <!-- ADDRESSES -->
+    <div class="section-title">Addresses</div>
+
+    <div id="addresses">
+        <div class="address-row">
+            <select class="address_type"></select>
+            <input type="text" class="address_line1" placeholder="Address line 1">
+            <input type="text" class="address_line2" placeholder="Address line 2">
+            <input type="text" class="address_city" placeholder="City">
+            <input type="text" class="address_province" placeholder="Province">
+            <input type="text" class="address_postal" placeholder="Postal code">
+        </div>
+    </div>
+    <button type="button" onclick="addAddress()">+ Add Address</button>
+
+
+    <!-- NEXT OF KIN -->
+    <div class="section-title">Next of Kin</div>
+    <div id="nok_list">
+        <div class="nok-row">
+            <input type="text" class="nok_name" placeholder="Full Name">
+            <input type="text" class="nok_surname" placeholder="Surname">
+            <select class="nok_relationship"></select>
+            <input type="text" class="nok_phone" placeholder="Phone">
+            <input type="text" class="nok_email" placeholder="Email">
+        </div>
+    </div>
+    <button type="button" onclick="addNOK()">+ Add Next of Kin</button>
+
+    <br><br>
+    <button type="button" onclick="submitPatient()">Submit Patient</button>
+
+</form>
+
+<script>
+
+async function loadDropdown(id, table) {
+    const response = await fetch(`http://localhost:5000/api/dropdown/${table}`);
+    const json = await response.json();
+
+    const select = document.getElementById(id);
+    json.data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item[0];
+        opt.text = item[1];
+        select.appendChild(opt);
+    });
+}
+
+async function loadAllDropdowns() {
+    await loadDropdown("salutation_id", "salutation");
+    await loadDropdown("id_type_id", "id_type");
+    await loadDropdown("sex_id", "sex");
+    await loadDropdown("gender_identity_id", "gender_identity");
+    await loadDropdown("nationality_id", "nationality");
+    await loadDropdown("language_id", "home_language");
+
+    // Contact, address type, and NOK relationship dropdowns
+    let contactTypes = await (await fetch("http://localhost:5000/api/dropdown/contact_type")).json();
+    document.querySelectorAll(".contact_type").forEach(sel => {
+        contactTypes.data.forEach(item => {
+            let opt = document.createElement("option");
+            opt.value = item[0];
+            opt.text = item[1];
+            sel.appendChild(opt);
+        });
+    });
+
+    let addressTypes = await (await fetch("http://localhost:5000/api/dropdown/address_type")).json();
+    document.querySelectorAll(".address_type").forEach(sel => {
+        addressTypes.data.forEach(item => {
+            let opt = document.createElement("option");
+            opt.value = item[0];
+            opt.text = item[1];
+            sel.appendChild(opt);
+        });
+    });
+
+    let nokRelationships = await (await fetch("http://localhost:5000/api/dropdown/relationship_type")).json();
+    document.querySelectorAll(".nok_relationship").forEach(sel => {
+        nokRelationships.data.forEach(item => {
+            let opt = document.createElement("option");
+            opt.value = item[0];
+            opt.text = item[1];
+            sel.appendChild(opt);
+        });
+    });
+}
+
+function addContact() {
+    let div = document.createElement("div");
+    div.className = "contact-row";
+    div.innerHTML = `
+        <select class="contact_type"></select>
+        <input type="text" class="contact_value" placeholder="Phone or Email">
+    `;
+    document.getElementById("contacts").appendChild(div);
+}
+
+function addAddress() {
+    let div = document.createElement("div");
+    div.className = "address-row";
+    div.innerHTML = `
+        <select class="address_type"></select>
+        <input type="text" class="address_line1" placeholder="Address line 1">
+        <input type="text" class="address_line2" placeholder="Address line 2">
+        <input type="text" class="address_city" placeholder="City">
+        <input type="text" class="address_province" placeholder="Province">
+        <input type="text" class="address_postal" placeholder="Postal code">
+    `;
+    document.getElementById("addresses").appendChild(div);
+}
+
+function addNOK() {
+    let div = document.createElement("div");
+    div.className = "nok-row";
+    div.innerHTML = `
+        <input type="text" class="nok_name" placeholder="Full Name">
+        <input type="text" class="nok_surname" placeholder="Surname">
+        <select class="nok_relationship"></select>
+        <input type="text" class="nok_phone" placeholder="Phone">
+        <input type="text" class="nok_email" placeholder="Email">
+    `;
+    document.getElementById("nok_list").appendChild(div);
+}
+
+// Main Submit
+async function submitPatient() {
+    const payload = {
+        first_name: document.getElementById("first_name").value,
+        surname: document.getElementById("surname").value,
+        salutation_id: document.getElementById("salutation_id").value,
+        id_type_id: document.getElementById("id_type_id").value,
+        id_number: document.getElementById("id_number").value,
+        date_of_birth: document.getElementById("date_of_birth").value,
+        sex_id: document.getElementById("sex_id").value,
+        gender_identity_id: document.getElementById("gender_identity_id").value,
+        nationality_id: document.getElementById("nationality_id").value,
+        language_id: document.getElementById("language_id").value,
+        occupation: document.getElementById("occupation").value
+    };
+
+    const result = await fetch("http://localhost:5000/api/patients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    alert(await result.text());
+}
+
+loadAllDropdowns();
+</script>
 
 </body>
 </html>
