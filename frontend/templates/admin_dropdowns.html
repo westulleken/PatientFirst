@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dropdown Manager</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .dropdown-container { margin-bottom: 30px; }
+        .title { font-size: 20px; margin-bottom: 10px; font-weight: bold; }
+        .item { margin: 4px 0; }
+        .input-row { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>Admin Dropdown Manager</h1>
+
+<div id="dropdowns"></div>
+
+<script>
+    const dropdownList = [
+        { table: "salutation", column: "salutation_label", label: "Salutations" },
+        { table: "id_type", column: "id_type_label", label: "ID Types" },
+        { table: "sex", column: "sex_label", label: "Sex" },
+        { table: "gender_identity", column: "gender_label", label: "Gender Identity" },
+        { table: "nationality", column: "nationality_label", label: "Nationality" },
+        { table: "home_language", column: "language_label", label: "Home Language" },
+        { table: "medical_aid", column: "medical_aid_label", label: "Medical Aid" },
+        { table: "medical_aid_plan", column: "plan_label", label: "Medical Aid Plans" },
+        { table: "contact_type", column: "contact_type_label", label: "Contact Types" }
+    ];
+
+    async function loadDropdowns() {
+        const container = document.getElementById("dropdowns");
+        container.innerHTML = "";
+
+        dropdownList.forEach(d => {
+            const div = document.createElement("div");
+            div.classList.add("dropdown-container");
+
+            div.innerHTML = `
+                <div class="title">${d.label}</div>
+                <div id="${d.table}-items">Loading...</div>
+
+                <div class="input-row">
+                    <input type="text" id="${d.table}-input" placeholder="Add new value..." />
+                    <button onclick="addValue('${d.table}', '${d.column}')">Add</button>
+                </div>
+            `;
+
+            container.appendChild(div);
+            loadValues(d.table);
+        });
+    }
+
+    async function loadValues(table) {
+        const response = await fetch(`http://localhost:5000/api/dropdown/${table}`);
+        const json = await response.json();
+
+        let html = "";
+        json.data.forEach(item => {
+            html += `<div class="item">${item[1]}</div>`;
+        });
+
+        document.getElementById(`${table}-items`).innerHTML = html;
+    }
+
+    async function addValue(table, column) {
+        const value = document.getElementById(`${table}-input`).value;
+        if (!value) return;
+
+        await fetch(`http://localhost:5000/api/dropdown/${table}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ column: column, value: value })
+        });
+
+        loadValues(table);
+        document.getElementById(`${table}-input`).value = "";
+    }
+
+    loadDropdowns();
+</script>
+
+</body>
+</html>
